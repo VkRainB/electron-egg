@@ -6,7 +6,7 @@
   "ignore": [],
   "ext": "js,json",
   "verbose": true,
-  "exec": "electron . --env=local --hot-reload=1",
+  "exec": "ee-bin dev",
   "restartable": "hr",
   "colours": true,
   "events": {}

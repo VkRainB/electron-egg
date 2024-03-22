@@ -1,5 +1,8 @@
 const { Application } = require('ee-core');
-
+const {app, session} = require("electron");
+const CoreElectronApp = require('ee-core/electron/app');
+const Cross = require('ee-core/cross');
+const EE = require('ee-core/ee');
 class Index extends Application {
 
   constructor() {
@@ -12,6 +15,40 @@ class Index extends Application {
    */
   async ready () {
     // do some things
+    CoreElectronApp.create = async () => {
+      const { CoreApp } = EE;
+
+      app.whenReady().then(() => {
+        CoreApp.createWindow();
+        // only one instance is guaranteed
+        const gotTheLock = app.requestSingleInstanceLock()
+        if (!gotTheLock) {
+          app.quit();
+        }
+
+        // show the first opened window
+        app.on('second-instance', (event, argv, workingDirectory) => {
+          this.mainWindow.show();
+        });
+
+      })
+
+      app.on('window-all-closed', () => {
+        if (!UtilsIs.macOS) {
+          Log.coreLogger.info('[ee-core] [lib/eeApp] window-all-closed quit');
+          CoreApp.appQuit();
+        }
+      })
+
+      app.on('before-quit', () => {
+        Electron.extra.closeWindow = true;
+
+        // kill cross services
+        Cross.kill();
+      })
+
+      return app;
+    }
   }
 
   /**
